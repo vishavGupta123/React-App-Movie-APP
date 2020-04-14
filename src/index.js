@@ -51,6 +51,42 @@ console.log("state", store.getState());
 
 // console.log('AFTER STATE',store.getState());
 
+export function connect(callback) {
+  return function (Component) {
+    class ConnectedComponent extends React.Component {
+      constructor(props) {
+        super(props);
+        this.unsubscribe = this.props.store.subscribe(() => {
+          this.forceUpdate();
+        });
+      }
+      componentWillUnmount() {
+        this.unsubscribe();
+      }
+      render() {
+        const { store } = this.props;
+        const dataToBePassedAsprops = callback(store.getState());
+
+        return (
+          <Component dispatch={store.dispatch} {...dataToBePassedAsprops} />
+        );
+      }
+    }
+    class ConnectedComponentWrapper extends React.Component {
+      render() {
+        return (
+          <StoreContext.Consumer>
+            {(store) => {
+              return <ConnectedComponent store={store}></ConnectedComponent>;
+            }}
+          </StoreContext.Consumer>
+        );
+      }
+    }
+    return ConnectedComponentWrapper;
+  };
+}
+
 ReactDOM.render(
   <StoreContext.Provider value={store}>
     <App />

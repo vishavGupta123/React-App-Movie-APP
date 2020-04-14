@@ -3,22 +3,18 @@ import { data } from "../data";
 import Navbar from "./Navbar";
 import MovieCard from "./MovieCart";
 import { addMovies, addFavourite, setShowFavourites } from "../actions";
-import { StoreContext } from "../index";
+import { StoreContext, connect } from "../index";
 
 class App extends React.Component {
   componentDidMount() {
-    const { store } = this.props;
-    store.subscribe(() => {
-      console.log("UPDATED");
-      this.forceUpdate();
-    });
+    //  this.props.subscribe(() => this.forceUpdate());
     //make api call
     //dispatch action
-    store.dispatch(addMovies(data));
-    console.log("STATE", this.props.store.getState()); //list:[], favourites: []
+    this.props.dispatch(addMovies(data));
+    console.log("STATE", this.props); //list:[], favourites: []
   }
   isMovieFavourite = (movie) => {
-    const { movies } = this.props.store.getState();
+    const { movies } = this.props;
 
     const index = movies.favourites.indexOf(movie);
 
@@ -29,18 +25,18 @@ class App extends React.Component {
     return false;
   };
   onChangeTab = (val) => {
-    this.props.store.dispatch(setShowFavourites(val));
+    this.props.dispatch(setShowFavourites(val));
   };
   render() {
     console.log("****,Props inside the App Component,", this.props);
-    const { movies, search } = this.props.store.getState();
+    const { movies, search } = this.props;
     const { list, favourites, showFavourites } = movies; //
     console.log("RENDER");
     const displayMovies = showFavourites ? favourites : list;
-    console.log(this.props.store.getState());
+    console.log(this.props);
     return (
       <div className="App">
-        <Navbar dispatch={this.props.store.dispatch} search={search} />
+        <Navbar />
         <div className="main">
           <div className="tabs">
             <div
@@ -61,7 +57,7 @@ class App extends React.Component {
               <MovieCard
                 movie={movie}
                 key={`movies-${index}`}
-                dispatch={this.props.store.dispatch}
+                dispatch={this.props.dispatch}
                 isFavourite={this.isMovieFavourite(movie)}
               />
             ))}
@@ -74,16 +70,17 @@ class App extends React.Component {
     );
   }
 }
-class AppWrapper extends React.Component {
-  render() {
-    return (
-      <StoreContext.Consumer>
-        {(store) => {
-          return <App store={store}></App>;
-        }}
-      </StoreContext.Consumer>
-    );
-  }
-}
 
-export default AppWrapper;
+const ConnectedToStoreApp = connect(function (state) {
+  return {
+    movies: state.movies,
+    search: state.search,
+  };
+})(App);
+
+export default ConnectedToStoreApp;
+
+//connect will solve:
+//* give me data from store
+//* provide dispatch as props
+// *subscribe to store as well
