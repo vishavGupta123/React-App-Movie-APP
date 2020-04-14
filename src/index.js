@@ -1,41 +1,46 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import {createStore,applyMiddleware} from 'redux';
+import React, { createContext } from "react";
+import ReactDOM from "react-dom";
+import { createStore, applyMiddleware } from "redux";
 
-import './index.css';
-import App from './components/App';
-import rootReducer from './reducers';
+import "./index.css";
+import App from "./components/App";
+import rootReducer from "./reducers";
 
 //logger(obj)(next)(action)
 // const logger = function(dispatch,getState){
 //   return function(next){
 //     return function(action){
 //       //middleware code
-      
+
 //     }
 //   }
 // }
 
-const logger =({dispatch,getState})=>(next)=>(action)=>{
- // console.log("ACTION_TYPE= ",action.type);
- if(typeof action !== 'function')  {
-   console.log("ACTION_TYPE= ",action.type);
- }
-      next(action);
-}
+const logger = ({ dispatch, getState }) => (next) => (action) => {
+  // console.log("ACTION_TYPE= ",action.type);
+  if (typeof action !== "function") {
+    console.log("ACTION_TYPE= ", action.type);
+  }
+  next(action);
+};
 
-console.log('The Root Reducer is ',rootReducer);
-const thunk =({dispatch,getState})=>(next)=>(action)=>{
-  if(typeof(action)==='function'){
+console.log("The Root Reducer is ", rootReducer);
+const thunk = ({ dispatch, getState }) => (next) => (action) => {
+  if (typeof action === "function") {
     action(dispatch);
     return;
   }
   next(action);
-}
+};
 
-const store=createStore(rootReducer,applyMiddleware(logger,thunk));
-console.log('store',store);
-console.log('state',store.getState());
+const store = createStore(rootReducer, applyMiddleware(logger, thunk));
+export const StoreContext = createContext();
+
+console.log("Store context", StoreContext);
+
+console.log("Store");
+console.log("store", store);
+console.log("state", store.getState());
 
 // console.log('BEFORE STATE',store.getState());
 
@@ -47,9 +52,8 @@ console.log('state',store.getState());
 // console.log('AFTER STATE',store.getState());
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App store={store}/>
-  </React.StrictMode>,
-  document.getElementById('root')
+  <StoreContext.Provider value={store}>
+    <App />
+  </StoreContext.Provider>,
+  document.getElementById("root")
 );
-
